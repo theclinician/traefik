@@ -255,6 +255,7 @@ func (p *Provider) loadDockerConfig(containersInspected []dockerData) *types.Con
 		"getDomain":                   p.getDomain,
 		"getProtocol":                 p.getProtocol,
 		"getPassHostHeader":           p.getPassHostHeader,
+		"getPassTLSCert":              p.getPassTLSCert,
 		"getPriority":                 p.getPriority,
 		"getEntryPoints":              p.getEntryPoints,
 		"getBasicAuth":                p.getBasicAuth,
@@ -277,6 +278,7 @@ func (p *Provider) loadDockerConfig(containersInspected []dockerData) *types.Con
 		"getServiceBasicAuth":         p.getServiceBasicAuth,
 		"getServiceFrontendRule":      p.getServiceFrontendRule,
 		"getServicePassHostHeader":    p.getServicePassHostHeader,
+		"getServicePassTLSCert":       p.getServicePassTLSCert,
 		"getServicePriority":          p.getServicePriority,
 		"getServiceBackend":           p.getServiceBackend,
 		"getWhitelistSourceRange":     p.getWhitelistSourceRange,
@@ -402,6 +404,14 @@ func (p *Provider) getServicePassHostHeader(container dockerData, serviceName st
 		return servicePassHostHeader
 	}
 	return p.getPassHostHeader(container)
+}
+
+// Extract passHostHeader from labels for a given service and a given docker container
+func (p *Provider) getServicePassTLSCert(container dockerData, serviceName string) string {
+	if servicePassTLSCert, ok := getContainerServiceLabel(container, serviceName, "frontend.passTLSCert"); ok {
+		return servicePassTLSCert
+	}
+	return p.getPassTLSCert(container)
 }
 
 // Extract priority from labels for a given service and a given docker container
@@ -670,6 +680,14 @@ func (p *Provider) getPassHostHeader(container dockerData) string {
 	}
 	return "true"
 }
+
+func (p *Provider) getPassTLSCert(container dockerData) string {
+	if passTLSCert, err := getLabel(container, "traefik.frontend.passTLSCert"); err == nil {
+		return passTLSCert
+	}
+	return "false"
+}
+
 
 func (p *Provider) getWhitelistSourceRange(container dockerData) []string {
 	var whitelistSourceRange []string

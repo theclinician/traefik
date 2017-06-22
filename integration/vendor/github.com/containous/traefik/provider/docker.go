@@ -247,6 +247,7 @@ func (provider *Docker) loadDockerConfig(containersInspected []dockerData) *type
 		"getDomain":                   provider.getDomain,
 		"getProtocol":                 provider.getProtocol,
 		"getPassHostHeader":           provider.getPassHostHeader,
+		"getPassTLSCert":              provider.getPassTLSCert,
 		"getPriority":                 provider.getPriority,
 		"getEntryPoints":              provider.getEntryPoints,
 		"getFrontendRule":             provider.getFrontendRule,
@@ -485,6 +486,13 @@ func (provider *Docker) getProtocol(container dockerData) string {
 func (provider *Docker) getPassHostHeader(container dockerData) string {
 	if passHostHeader, err := getLabel(container, "traefik.frontend.passHostHeader"); err == nil {
 		return passHostHeader
+	}
+	return "true"
+}
+
+func (provider *Docker) getPassTLSCert(container dockerData) string {
+	if passTLSCert, err := getLabel(container, "traefik.frontend.passTLSCert"); err == nil {
+		return passTLSCert
 	}
 	return "true"
 }

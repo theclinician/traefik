@@ -407,6 +407,42 @@ func TestSwarmGetPassHostHeader(t *testing.T) {
 	}
 }
 
+func TestSwarmGetPassTLSCert(t *testing.T) {
+	services := []struct {
+		service  swarm.Service
+		expected string
+		networks map[string]*docker.NetworkResource
+	}{
+		{
+			service:  swarmService(),
+			expected: "false",
+			networks: map[string]*docker.NetworkResource{},
+		},
+		{
+			service: swarmService(serviceLabels(map[string]string{
+				"traefik.frontend.passTLSCert": "false",
+			})),
+			expected: "false",
+			networks: map[string]*docker.NetworkResource{},
+		},
+	}
+
+	for serviceID, e := range services {
+		e := e
+		t.Run(strconv.Itoa(serviceID), func(t *testing.T) {
+			t.Parallel()
+			dockerData := parseService(e.service, e.networks)
+			provider := &Provider{
+				SwarmMode: true,
+			}
+			actual := provider.getPassTLSCert(dockerData)
+			if actual != e.expected {
+				t.Errorf("expected %q, got %q", e.expected, actual)
+			}
+		})
+	}
+}
+
 func TestSwarmGetLabel(t *testing.T) {
 	services := []struct {
 		service  swarm.Service

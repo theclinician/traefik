@@ -276,6 +276,44 @@ func TestDockerGetServicePassHostHeader(t *testing.T) {
 	}
 }
 
+func TestDockerGetServicePassTLSCert(t *testing.T) {
+	provider := &Provider{}
+
+	containers := []struct {
+		container docker.ContainerJSON
+		expected  string
+	}{
+		{
+			container: containerJSON(),
+			expected:  "false",
+		},
+		{
+			container: containerJSON(labels(map[string]string{
+				"traefik.frontend.passTLSCert": "false",
+			})),
+			expected: "false",
+		},
+		{
+			container: containerJSON(labels(map[string]string{
+				"traefik.myservice.frontend.passTLSCert": "false",
+			})),
+			expected: "false",
+		},
+	}
+
+	for containerID, e := range containers {
+		e := e
+		t.Run(strconv.Itoa(containerID), func(t *testing.T) {
+			t.Parallel()
+			dockerData := parseContainer(e.container)
+			actual := provider.getServicePassTLSCert(dockerData, "myservice")
+			if actual != e.expected {
+				t.Fatalf("expected %q, got %q", e.expected, actual)
+			}
+		})
+	}
+}
+
 func TestDockerGetServiceEntryPoints(t *testing.T) {
 	provider := &Provider{}
 

@@ -400,6 +400,37 @@ func TestDockerGetPassHostHeader(t *testing.T) {
 	}
 }
 
+func TestDockerGetPassTLSCert(t *testing.T) {
+	containers := []struct {
+		container docker.ContainerJSON
+		expected  string
+	}{
+		{
+			container: containerJSON(),
+			expected:  "false",
+		},
+		{
+			container: containerJSON(labels(map[string]string{
+				"traefik.frontend.passTLSCert": "false",
+			})),
+			expected: "false",
+		},
+	}
+
+	for containerID, e := range containers {
+		e := e
+		t.Run(strconv.Itoa(containerID), func(t *testing.T) {
+			t.Parallel()
+			dockerData := parseContainer(e.container)
+			provider := &Provider{}
+			actual := provider.getPassTLSCert(dockerData)
+			if actual != e.expected {
+				t.Errorf("expected %q, got %q", e.expected, actual)
+			}
+		})
+	}
+}
+
 func TestDockerGetWhitelistSourceRange(t *testing.T) {
 	containers := []struct {
 		desc      string
